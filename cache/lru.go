@@ -9,6 +9,7 @@ type entry struct {
 }
 
 // Try this implementation in
+// https://leetcode.cn/problems/lru-cache.
 type LRU struct {
 	cap int
 
