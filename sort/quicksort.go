@@ -7,11 +7,11 @@ import (
 
 type Quick struct{}
 
-// Sort adopts an tree-way partition algorithm, which is effective for sorting
+// Sort adopts an three-way partition algorithm, which is effective for sorting
 // array containing lots of duplicate elements.
 //
-// Relevant leetcode problem: https://leetcode.cn/problems/sort-an-array/description/.
-func (quick *Quick) Sort(nums []int) {
+// Relevant leetcode problem: https://leetcode.cn/problems/sort-an-array/.
+func (q *Quick) Sort(nums []int) {
 	if len(nums) <= 1 {
 		return
 	}
@@ -37,47 +37,43 @@ func (quick *Quick) Sort(nums []int) {
 		}
 	}
 
-	quick.Sort(nums[0 : lt+1])
-	quick.Sort(nums[gt:])
+	q.Sort(nums[:lt+1])
+	q.Sort(nums[gt:])
 }
 
-func (quick *Quick) TwoWaySort(nums []int) {
+// HoareSort is the original version of quick sort
+// by C.A.R.Hoare.
+// This implementation has two main problems:
+//  1. Pivot was not randomly chosen.
+//  2. No optimization on array with lots of duplicated
+//     elements.
+func (q *Quick) HoareSort(nums []int) {
 	if len(nums) <= 1 {
 		return
 	}
 
-	randIdx := rand.Intn(len(nums))
-	nums[0], nums[randIdx] = nums[randIdx], nums[0]
-
-	// Ele in range [..i] <= pivot.
-	// Ele in range [j..] >= pivot.
-	// Ele in range (i..j) is undetermined.
-	//
-	// In the last iter, we got i >= j and we don't swap them.
-	// And there are only two cases:
-	//   1. i == j and nums[i] == nums[j] == pivot
-	//   2. j == i-1 and nums[j] <= pivot and nums[i] >= pivot
-	i, j, pivot := 0, len(nums), nums[0]
-	for i < j {
-		for i++; i < j && nums[i] < pivot; i++ {
+	i, j, pivot := -1, len(nums), nums[0] // You can change nums[0] to nums[rand.Intn(len(nums))].
+	for {
+		for i++; nums[i] < pivot; i++ {
 		}
 		for j--; nums[j] > pivot; j-- {
 		}
-		if i < j {
-			nums[i], nums[j] = nums[j], nums[i]
+		if i >= j {
+			break
 		}
+		nums[i], nums[j] = nums[j], nums[i]
 	}
+	// 0 <= j < len(nums)-1
+	// Element in nums[:j+1] <= nums[j+1:].
 
-	nums[0], nums[j] = nums[j], nums[0]
-	// nums[j] is the partition location.
-	quick.TwoWaySort(nums[0:j])
-	quick.TwoWaySort(nums[j+1:])
+	q.HoareSort(nums[:j+1])
+	q.HoareSort(nums[j+1:])
 }
 
 // Select find the k-th largest element in nums.
 //
 // Relevant leetcode problem: https://leetcode.cn/problems/kth-largest-element-in-an-array/.
-func (quick *Quick) Select(nums []int, k int) int {
+func (q *Quick) Select(nums []int, k int) int {
 	if k <= 0 || k > len(nums) {
 		panic(fmt.Sprintf("unexpected k = %d", k))
 	}
@@ -105,10 +101,10 @@ func (quick *Quick) Select(nums []int, k int) int {
 
 	// Element in range (le, gt) equals to pivot.
 	if len(nums)-k <= lt {
-		return quick.Select(nums[0:lt+1], k+lt-len(nums)+1)
+		return q.Select(nums[:lt+1], k+lt-len(nums)+1)
 	}
 	if len(nums)-k >= gt {
-		return quick.Select(nums[gt:], k)
+		return q.Select(nums[gt:], k)
 	}
 	return pivot
 }
